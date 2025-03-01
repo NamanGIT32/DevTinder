@@ -1,32 +1,58 @@
 const express = require("express");
-const connectDB = require("./config/database")
+const connectDB = require("./config/database");
 const app = express();
-const User = require('./models/user'); 
-const PORT= 3000;
+const User = require("./models/user");
+const PORT = 3000;
 
 //middleware to parse JSON data
 app.use(express.json());
 
-app.post('/signup', async (req, res) =>  {
-  const {firstName, middleName, lastName, emailId, password, age, gender} = req.body;
+app.post("/signup", async (req, res) => {
+  const { firstName, middleName, lastName, emailId, password, age, gender } =
+    req.body;
   try {
     const user = new User({
-      firstName:firstName,
-      middleName:middleName,
-      lastName:lastName,
-      emailId:emailId,
-      password:password,
-      age:age,
-      gender:gender
-    })
+      firstName: firstName,
+      middleName: middleName,
+      lastName: lastName,
+      emailId: emailId,
+      password: password,
+      age: age,
+      gender: gender,
+    });
     await user.save();
     res.send("User created successfully");
   } catch (error) {
-    res.status(402).json({msg:"error while creating user", error});
+    res.status(402).json({ msg: "error while creating user", error });
   }
 });
 
-app.get('/getUsers', async (req, res) => {
+app.patch("/updateUser/:id", async (req, res) => {
+  const data = req.body;
+  const userId = req.params.id;
+  const canUpdateFields = [
+    "firstName",
+    "middleName",
+    "lastName",
+    "age",
+    "gender",
+    "skills",
+    "imageURL",
+  ];
+  try {
+    if (!Object.keys(data).every((field) => canUpdateFields.includes(field))) {
+      throw new Error("Invalid field found to update");
+    }
+    const updatedUser = await User.findByIdAndUpdate(userId, data, {
+      returnDocument: "after",
+      runValidators: true,
+    });
+  } catch (error) {
+    return res.status(400).send("Error while updating user " + error);
+  }
+});
+
+app.get("/getUsers", async (req, res) => {
   try {
     const users = await User.find();
     res.send(users);
@@ -35,39 +61,36 @@ app.get('/getUsers', async (req, res) => {
   }
 });
 
-app.get('/getUser', async (req, res) => {
+app.get("/getUser", async (req, res) => {
   try {
     const user = await User.findOne({
-      lastName:"kolhi"
-      });
+      lastName: "kolhi",
+    });
     res.send(user);
   } catch (error) {
     res.send("error while getting users", error);
   }
 });
 
-app.delete('/deleteUser', async (req, res) => {
-  const {firstName} = req.body;
-  try{
-    const user= await User.find({firstName:firstName});
-    
-    if(!user) return res.status(400).send("User not found");
-    
+app.delete("/deleteUser", async (req, res) => {
+  const { firstName } = req.body;
+  try {
+    const user = await User.find({ firstName: firstName });
+
+    if (!user) return res.status(400).send("User not found");
+
     await User.findByIdAndDelete(user._id);
     res.status(200).send("User deleted successfully");
-  }
-  catch(err){
+  } catch (err) {
     res.status(400).send("Error while deleting user", err);
   }
 });
 
-
 connectDB()
-.then(()=> {
-  console.log("Database connected successfully....")
-  app.listen(PORT, ()=>{
-    console.log("Server is started on port " + PORT);
-});
-})
-.catch((err)=> console.error("Error in connecting database", err));
-
+  .then(() => {
+    console.log("Database connected successfully....");
+    app.listen(PORT, () => {
+      console.log("Server is started on port " + PORT);
+    });
+  })
+  .catch((err) => console.error("Error in connecting database", err));
