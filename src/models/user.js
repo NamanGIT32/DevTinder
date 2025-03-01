@@ -2,23 +2,44 @@ const mongoose= require('mongoose');
 
 const userSchema= new mongoose.Schema({
     firstName:{
-        type: String
+        type: String,
+        required: true
+    },
+    middleName:{
+        type: String,
     },
     lastName:{
-        type: String
+        type: String,
+        required: true
     },
     emailId:{
-        type: String
+        type: String,
     },
     password:{
-        type: String
+        type: String,
     },
     age:{
-        type: String
+        type: Number,
+        min:10
     },
     gender:{    
-        type: String
+        type: String,
+        validate:{
+            validator:function(value){
+                return ["male","female","other"].includes(value)
+            },
+            message:"Gender should be male/female/other"
+        }
     },
+    skills:{
+        type: [String]
+    },
+    imageURL:{
+        type: String,
+        default:"https://cdn-icons-png.flaticon.com/512/149/149071.png"
+    }
+},{
+    timestamps:true
 });
 
 const User= mongoose.model('User', userSchema);
