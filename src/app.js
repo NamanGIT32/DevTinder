@@ -1,31 +1,54 @@
 const express = require("express");
 const connectDB = require("./config/database");
-const app = express();
 const User = require("./models/user");
+const validation = require("./utils/validation");
+const bcrypt = require("bcrypt")
+
+const app = express();
 const PORT = 3000;
 
 //middleware to parse JSON data
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const { firstName, middleName, lastName, emailId, password, age, gender } =
-    req.body;
+  const { firstName, lastName, emailId, password} = req.body;
+
   try {
+    validation(req);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = new User({
       firstName: firstName,
-      middleName: middleName,
       lastName: lastName,
       emailId: emailId,
-      password: password,
-      age: age,
-      gender: gender,
+      password: hashedPassword,
+      imageURL:"https://cdn-icons-png.flaticon.com"
     });
+
     await user.save();
     res.send("User created successfully");
-  } catch (error) {
-    res.status(402).json({ msg: "error while creating user", error });
+  } catch (err) {
+    return res.status(402).json({response:"Error while creating user", error: err.message});
   }
 });
+
+app.post('/login', async (req, res) => {
+  const {emailId, password} = req.body;
+  try {
+    const user = await User.findOne({emailId: emailId});
+    console.log(user);
+    if(!user){
+      throw new Error("Invalid credentials");
+    }
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if(!isPasswordCorrect){
+      throw new Error("Invalid credentials");
+    }
+    return res.status(200).json({response:"Login successfull"});
+  } catch (err) {
+    return res.status(400).json({response:"Error while login", error: err.message});
+  }
+})
 
 app.patch("/updateUser/:id", async (req, res) => {
   const data = req.body;
