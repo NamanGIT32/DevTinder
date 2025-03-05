@@ -2,13 +2,16 @@ const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
 const validation = require("./utils/validation");
+const {userAuth} = require('./middlewares/auth')
 const bcrypt = require("bcrypt")
-
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = 3000;
 
 //middleware to parse JSON data
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   const { firstName, lastName, emailId, password} = req.body;
@@ -36,7 +39,6 @@ app.post('/login', async (req, res) => {
   const {emailId, password} = req.body;
   try {
     const user = await User.findOne({emailId: emailId});
-    console.log(user);
     if(!user){
       throw new Error("Invalid credentials");
     }
@@ -44,10 +46,26 @@ app.post('/login', async (req, res) => {
     if(!isPasswordCorrect){
       throw new Error("Invalid credentials");
     }
+    const token = jwt.sign({id:user._id}, "secretDevTinder", {expiresIn:"1d"});
+    res.cookie("token", token);
     return res.status(200).json({response:"Login successfull"});
   } catch (err) {
-    return res.status(400).json({response:"Error while login", error: err.message});
+    return res.status(400).json({response:"Error while login", error: err.message, stack:err.stack});  
   }
+})
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    return res.status(200).json({response:"User profile fetched successfully", user});
+  } catch (err) {
+      return res.status(400).json({response:"error while fetching user", error:err.message, stack:err.stack})
+  }
+});
+
+app.post('/sendConnectionRequest', userAuth, (req, res)=>{
+  const user = req.user;
+  res.send("connection request sent by: " + user.firstName);
 })
 
 app.patch("/updateUser/:id", async (req, res) => {
@@ -72,40 +90,6 @@ app.patch("/updateUser/:id", async (req, res) => {
     });
   } catch (error) {
     return res.status(400).send("Error while updating user " + error);
-  }
-});
-
-app.get("/getUsers", async (req, res) => {
-  try {
-    const users = await User.find();
-    res.send(users);
-  } catch (error) {
-    res.send("error while getting users", error);
-  }
-});
-
-app.get("/getUser", async (req, res) => {
-  try {
-    const user = await User.findOne({
-      lastName: "kolhi",
-    });
-    res.send(user);
-  } catch (error) {
-    res.send("error while getting users", error);
-  }
-});
-
-app.delete("/deleteUser", async (req, res) => {
-  const { firstName } = req.body;
-  try {
-    const user = await User.find({ firstName: firstName });
-
-    if (!user) return res.status(400).send("User not found");
-
-    await User.findByIdAndDelete(user._id);
-    res.status(200).send("User deleted successfully");
-  } catch (err) {
-    res.status(400).send("Error while deleting user", err);
   }
 });
 
