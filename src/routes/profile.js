@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {userAuth} = require('../middlewares/auth');
+const {userAuth} = require('../middlewares/userAuth');
 const { validateFieldsToEdit } = require('../utils/validation');
 const User = require('../models/user');
 
