@@ -1,13 +1,45 @@
 const express = require('express');
 const router = express.Router();
 const {userAuth} = require('../middlewares/auth');
+const { validateFieldsToEdit } = require('../utils/validation');
+const User = require('../models/user');
+
 router.get("/view", userAuth, async (req, res) => {
-    try {
-      const user = req.user;
-      return res.status(200).json({response:"User profile fetched successfully", user});
-    } catch (err) {
-        return res.status(400).json({response:"error while fetching user", error:err.message, stack:err.stack})
+  try {
+    const user = req.user;
+    return res.status(200).json({response:"User profile fetched successfully", user});
+  } catch (err) {
+      return res.status(400).json({response:"error while fetching user", error:err.message, stack:err.stack})
+  }
+});
+
+router.patch('/edit', userAuth, async (req, res) => {
+  try {
+    const {firstName, middleName, lastName, emailId, age, gender, skills, about, imageURL} = req.body;
+    const validFields = ["firstName", "middleName", "lastName", "emailId", "age", "gender", "skills", "about", "imageURL"];
+    const isValidFields = Object.keys(req.body).every((field) => validFields.includes(field));
+    if(!isValidFields){
+      throw new Error("Invalid field found");
     }
-  });
+    validateFieldsToEdit(req);
+    const updatedUserObject = {
+      firstName: firstName,
+      lastName: lastName,
+      middleName: middleName,
+      emailId: emailId,
+      age: age,
+      gender: gender,
+      skills: skills,
+      about: about,
+      imageURL: imageURL
+    }
+    const user = req.user;
+    const updatedUser = await User.findOneAndUpdate({emailId:user.emailId}, updatedUserObject, {runValidators:true, returnDocument: 'after'});
+    req.user = updatedUser
+    return res.status(200).json({response: "user updated successfully", updatedUser});
+  } catch (error) {
+    return res.status(400).json({message:"something went wrong", error: error.message, stack: error.stack});
+  }
+})
 
 module.exports = router;

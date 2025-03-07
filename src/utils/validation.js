@@ -15,4 +15,14 @@ const validation = (req) => {
     }
 };
 
-module.exports = validation;
+const validateFieldsToEdit = (req) => {
+    const {firstName, middleName, lastName, emailId, age, gender, skills, about, imageURL} = req.body;
+    if(emailId && !Validator.isEmail(emailId)) {
+        throw new Error("Invalid email: " + emailId);
+    }
+    else if(imageURL && !Validator.isURL(imageURL)) {
+        throw new Error("Invalid URL: " + imageURL);
+    }
+};
+
+module.exports = {validation, validateFieldsToEdit};
