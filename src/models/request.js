@@ -2,10 +2,12 @@ const mongoose = require('mongoose');
 const connectionRequestSchema = new mongoose.Schema({
     fromUserId: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: "User",     // reference to User collection
         required: true
     },
     toUserId: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
         required: true
     },
     status: {
@@ -16,6 +18,8 @@ const connectionRequestSchema = new mongoose.Schema({
             message: "Invalid status found"
         }
     }
+}, {
+    timestamps: true
 });
 
 // a compound index for fromUserId and toUserId

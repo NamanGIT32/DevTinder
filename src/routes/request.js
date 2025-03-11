@@ -26,7 +26,35 @@ router.post('/send/:status/:toUserId', userAuth, async (req, res)=> {
     const newConnectionRequest = new connectionRequestModel({fromUserId, toUserId, status});
     // using pre middleware to check for connection request to itself before save
     await newConnectionRequest.save();
-    return res.status(200).json({response: "connection request sent successfully", newConnectionRequest});
+    return res.status(200).json({response: "connection request sent successfully", data: newConnectionRequest});
+  } catch (error) {
+    return res.status(400).json({error: error.message, stack: error.stack});
+  }
+});
+
+// API to review connection request [includes both status: accepted and rejected]
+router.post('/review/:status/:requestId', userAuth, async (req, res) => {
+  try {
+    const {status, requestId} = req.params;
+    const loggedInUserId = req.user._id;
+
+    if(!["accepted", "rejected"].includes(status)){
+      throw new Error("Invalid status found");
+    }
+
+    const connectionRequest = await connectionRequestModel.findOne({
+      _id: requestId,
+      toUserId: loggedInUserId,
+      status: "interested"
+    });
+
+    if(!connectionRequest){
+      throw new Error("invalid request ");
+    }
+
+    connectionRequest.status = status;
+    await connectionRequest.save();
+    return res.status(200).json({response: "connection request reviewed successfully", data: connectionRequest});
   } catch (error) {
     return res.status(400).json({error: error.message, stack: error.stack});
   }

@@ -7,7 +7,7 @@ const User = require('../models/user');
 router.get("/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
-    return res.status(200).json({response:"User profile fetched successfully", user});
+    return res.status(200).json({response:"User profile fetched successfully", data: user});
   } catch (err) {
       return res.status(400).json({response:"error while fetching user", error:err.message, stack:err.stack})
   }
@@ -36,7 +36,7 @@ router.patch('/edit', userAuth, async (req, res) => {
     const user = req.user;
     const updatedUser = await User.findOneAndUpdate({emailId:user.emailId}, updatedUserObject, {runValidators:true, returnDocument: 'after'});
     req.user = updatedUser
-    return res.status(200).json({response: "user updated successfully", updatedUser});
+    return res.status(200).json({response: "user updated successfully", data: updatedUser});
   } catch (error) {
     return res.status(400).json({message:"something went wrong", error: error.message, stack: error.stack});
   }

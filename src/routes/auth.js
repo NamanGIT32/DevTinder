@@ -31,7 +31,7 @@ router.post("/signup", async (req, res) => {
       });
   
       await user.save();
-      return res.status(200).json({response: "User created successfully", user});
+      return res.status(200).json({response: "User created successfully", data: user});
     } catch (err) {
       return res.status(400).json({response:"Error while creating user", error: err.message, stack: err.stack});
     }
