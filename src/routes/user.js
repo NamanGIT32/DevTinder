@@ -1,7 +1,11 @@
 const express = require('express');
 const { userAuth } = require('../middlewares/userAuth');
+const User = require('../models/user');
 const { connectionRequestModel } = require('../models/request');
+const { connection } = require('mongoose');
 const router = express.Router();
+
+const userSafeInfo = "firstName middleName lastName age imageURL gender skills about";
 
 // It would fetch all the pending connection requests
 router.get('/getAllRequests', userAuth, async (req, res) => {
@@ -17,6 +21,7 @@ router.get('/getAllRequests', userAuth, async (req, res) => {
     }
 });
 
+// It would fetch all the connections of user
 router.get('/getAllConnections', userAuth, async (req, res) => {
     try {
         const loggedInUserId = req.user._id;
@@ -35,5 +40,29 @@ router.get('/getAllConnections', userAuth, async (req, res) => {
         return res.status(400).json({error: error.message, stack: error.stack});
     }
 })
+
+// Shows the feed of user
+router.get('/feed', userAuth, async (req, res) => {
+    try {
+        const loggedInUserId = req.user._id;
+        
+        const connections = await connectionRequestModel.find({
+            $or: [{fromUserId: loggedInUserId}, {toUserId: loggedInUserId}]
+        }).select("fromUserId toUserId");
+
+        const uniqueConnectionsSet = new Set();
+        connections.forEach(connection => 
+            {uniqueConnectionsSet.add(connection.fromUserId._id.toString())
+            uniqueConnectionsSet.add(connection.toUserId._id.toString())}
+        );
+        const feedUsers = await User.find({
+            _id: {$nin: Array.from(uniqueConnectionsSet)}
+        }).select(userSafeInfo);
+
+        return res.status(200).json({response: "User feed fetched successfully", data: feedUsers})
+    } catch (error) {
+        return res.status(400).json({error: error.message, stack: error.stack});
+    }
+});
 
 module.exports = router;
