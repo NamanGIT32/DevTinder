@@ -45,7 +45,10 @@ router.get('/getAllConnections', userAuth, async (req, res) => {
 router.get('/feed', userAuth, async (req, res) => {
     try {
         const loggedInUserId = req.user._id;
-        
+        const page = req.query.page || 1;
+        let limit = req.query.limit || 10;
+        const skip = (page-1)*limit;
+        limit = limit>10?10:limit;
         const connections = await connectionRequestModel.find({
             $or: [{fromUserId: loggedInUserId}, {toUserId: loggedInUserId}]
         }).select("fromUserId toUserId");
@@ -57,7 +60,10 @@ router.get('/feed', userAuth, async (req, res) => {
         );
         const feedUsers = await User.find({
             _id: {$nin: Array.from(uniqueConnectionsSet)}
-        }).select(userSafeInfo);
+        })
+        .select(userSafeInfo)
+        .skip(skip)
+        .limit(limit);
 
         return res.status(200).json({response: "User feed fetched successfully", data: feedUsers})
     } catch (error) {
