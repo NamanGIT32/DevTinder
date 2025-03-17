@@ -5,7 +5,7 @@ const profileRouter = require('./routes/profile');
 const requestRouter = require('./routes/request');
 const userRouter = require('./routes/user');
 const cookieParser = require('cookie-parser');
-
+const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
@@ -14,6 +14,10 @@ const PORT = 3000;
 app.use(express.json());
 // middleware to parse cookies
 app.use(cookieParser());
+app.use(cors({
+  origin:"http://localhost:5173",
+  credentials: true
+}));
 
 // defining the routes
 app.use('/auth', authRouter);

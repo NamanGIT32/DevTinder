@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
     }
     const token = jwt.sign({id:user._id}, "secretDevTinder", {expiresIn:"1d"});
     res.cookie("token", token, {maxAge: 86400000});
-    return res.status(200).json({response:"Login successfull"});
+    return res.status(200).json({response:"Login successfull", data: user});
   } catch (err) {
     return res.status(400).json({response:"Error while login", error: err.message, stack:err.stack});  
   }
