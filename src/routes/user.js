@@ -14,7 +14,7 @@ router.get('/getAllRequests', userAuth, async (req, res) => {
         const requests = await connectionRequestModel.find({
             toUserId: loggedInUserId,
             status: "interested"
-        }).populate('fromUserId', ["firstName", "lastName"]);
+        }).populate('fromUserId', ["firstName", "lastName", "imageURL", "_id"]);
         return res.status(200).json({response: "fetched all pending connection requests", data: requests}); 
     } catch (error) {
         return res.status(400).json({error: error.message, stack: error.stack});
@@ -27,7 +27,7 @@ router.get('/getAllConnections', userAuth, async (req, res) => {
         const loggedInUserId = req.user._id;
 
         const getAllConnections = await connectionRequestModel.find({$or: [{fromUserId: loggedInUserId, status: "accepted"}, {toUserId: loggedInUserId, status: "accepted"}]  
-        }).populate('fromUserId', ["firstName", "lastName"]).populate('toUserId', ["firstName", "lastName"]);
+        }).populate('fromUserId', userSafeInfo).populate('toUserId', userSafeInfo);
 
         const data = getAllConnections.map((connection) => {
             if(loggedInUserId.toString()===connection.fromUserId._id.toString()){
