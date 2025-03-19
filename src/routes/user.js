@@ -31,9 +31,9 @@ router.get('/getAllConnections', userAuth, async (req, res) => {
 
         const data = getAllConnections.map((connection) => {
             if(loggedInUserId.toString()===connection.fromUserId._id.toString()){
-                return connection.toUserId;
+                return {connectionId: connection._id, user:connection.toUserId};
             }
-            return connection.fromUserId;
+            return {connectionId:connection._id, user:connection.fromUserId};
         });
         return res.status(200).json({response: "All connections fetched successfully", data: data});
     } catch (error) {
