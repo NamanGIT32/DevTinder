@@ -44,11 +44,34 @@ router.get("/getIgnoredConnections", userAuth, async (req, res) => {
     return res
       .status(200)
       .json({
-        response: "All connections fetched successfully",
+        response: "All Ignored connections fetched successfully",
         data: data,
       });
   } catch (error) {
     return res.status(400).json({ error: error.message, stack: error.stack });
+  }
+});
+
+// API to remove the ignored conneection(so that we can again connect him)
+router.post("/removeIgnoredConnection/:connectionId", userAuth, async (req, res) => {
+  try {
+    const { connectionId } = req.params;
+    const connection = await connectionRequestModel.findById(connectionId);
+    if (!connection) {
+      throw new Error("Connection not found");
+    }
+    await connectionRequestModel.findByIdAndDelete(connectionId);
+    return res
+      .status(200)
+      .json({ response: "Connection removed succussfully" });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({
+        message: "Error while removing request",
+        error: error.message,
+        stack: error.stack,
+      });
   }
 });
 
