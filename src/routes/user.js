@@ -71,4 +71,23 @@ router.get('/feed', userAuth, async (req, res) => {
     }
 });
 
+router.delete('/deleteAccount', userAuth, async (req, res)=>{
+    try {
+        const loggedInUserId = req.user._id;
+        const user = await User.findById(loggedInUserId);
+        if(!user){
+            throw new Error("User not found");
+        }
+        const connections = await connectionRequestModel.find({$or:[{fromUserId:loggedInUserId}, {toUserId: loggedInUserId}]}).select("_id");
+        const deletedConnections = await connectionRequestModel.deleteMany({ _id: { $in: connections }});
+        if(!deletedConnections.acknowledged){
+            throw new Error("Error!! Connections not deleted");
+        }
+        await User.findByIdAndDelete(loggedInUserId);
+        return res.status(200).json({response: "user deleted successfully", deletedConnections: deletedConnections.deletedCount});
+    } catch (error) {
+        return res.status(400).json({error: error.message, stack: error.stack});
+    } 
+});
+
 module.exports = router;
