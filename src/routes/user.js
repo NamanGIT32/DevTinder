@@ -84,6 +84,7 @@ router.delete('/deleteAccount', userAuth, async (req, res)=>{
             throw new Error("Error!! Connections not deleted");
         }
         await User.findByIdAndDelete(loggedInUserId);
+        res.cookie("token", "", {maxAge: 0});
         return res.status(200).json({response: "user deleted successfully", deletedConnections: deletedConnections.deletedCount});
     } catch (error) {
         return res.status(400).json({error: error.message, stack: error.stack});

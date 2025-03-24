@@ -1,12 +1,11 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-
 const userAuth = async (req, res, next) => {
     try {
         const token = req.cookies.token;
         if(!token){
-            throw new Error("token not found");
+            return res.status(401).json({response:"User not authenticated"});
         }
         const decodedMsg = jwt.verify(token, "secretDevTinder");
         const id = decodedMsg.id;
