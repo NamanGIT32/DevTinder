@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const connectDB = require("./config/database");
 const authRouter = require('./routes/auth');
 const profileRouter = require('./routes/profile');
@@ -8,9 +9,9 @@ const connectionRouter = require('./routes/connection');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
-const app = express();
-const PORT = 3000;
 
+const app = express();
+const PORT = process.env.PORT || 3000;
 // middleware to parse JSON data
 app.use(express.json());
 // middleware to parse cookies
