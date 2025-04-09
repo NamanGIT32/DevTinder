@@ -49,7 +49,12 @@ const userSchema = new mongoose.Schema(
     imageURL: {
         type: String,
         default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-      },
+    },
+    status:{
+      type: String,
+      enum: ["online", "offline"],
+      default:"offline"
+    }
   },
   {
     timestamps: true,

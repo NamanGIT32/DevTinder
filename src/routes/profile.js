@@ -13,6 +13,19 @@ router.get("/view", userAuth, async (req, res) => {
   }
 });
 
+router.get('/getTargetUserProfile/:targetUserId', userAuth, async (req, res)=> {
+  try {
+    const {targetUserId} = req?.params;
+    const targetUser = await User.findById(targetUserId);
+    if(!targetUser){
+      throw new Error("User does not exist");
+    }
+    return res.status(200).json({response: "User details fetched successfully", data: targetUser});
+  } catch (error) {
+    return res.status(400).json({response: "Error while getting user profile", error: error.message, stack: error.satck});
+  }
+})
+
 router.patch('/edit', userAuth, async (req, res) => {
   try {
     const {firstName, middleName, lastName, emailId, age, gender, skills, about, imageURL} = req.body;

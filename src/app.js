@@ -6,8 +6,11 @@ const profileRouter = require('./routes/profile');
 const requestRouter = require('./routes/request');
 const userRouter = require('./routes/user');
 const connectionRouter = require('./routes/connection');
+const chatRouter = require('./routes/chat');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const http = require('http');
+const initializeSocket = require("./utils/socket");
 
 
 const app = express();
@@ -27,12 +30,16 @@ app.use('/profile', profileRouter);
 app.use('/request', requestRouter);
 app.use('/user', userRouter);
 app.use('/connection', connectionRouter);
+app.use('/chat', chatRouter);
+
+const server = http.createServer(app);
+initializeSocket(server);
 
 connectDB()
   .then(() => {
     console.log("Database connected successfully....");
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log("Server is started on port " + PORT);
     });
   })
-  .catch((err) => console.error("Error in connecting database", err));  
+  .catch((err) => console.error("Error in connecting database", err));

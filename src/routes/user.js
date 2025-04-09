@@ -5,7 +5,7 @@ const { connectionRequestModel } = require('../models/request');
 const { connection } = require('mongoose');
 const router = express.Router();
 
-const userSafeInfo = "firstName middleName lastName age imageURL gender skills about";
+const userSafeInfo = "firstName middleName lastName age imageURL gender skills about status";
 
 // It would fetch all the pending connection requests
 router.get('/getAllRequests', userAuth, async (req, res) => {
@@ -59,7 +59,7 @@ router.get('/feed', userAuth, async (req, res) => {
             uniqueConnectionsSet.add(connection.toUserId._id.toString())}
         );
         const feedUsers = await User.find({
-            _id: {$nin: Array.from(uniqueConnectionsSet)}
+            _id: {$nin: Array.from(uniqueConnectionsSet), $ne: loggedInUserId}
         })
         .select(userSafeInfo)
         .skip(skip)
